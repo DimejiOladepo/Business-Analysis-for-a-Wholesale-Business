@@ -1,0 +1,94 @@
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Question 1
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+SELECT cus.companyname Company_Name,COUNT(ord.orderid) Total_Order_Volume,SUM(((unitprice*quantity)-(discount *(unitprice*quantity)))) Total_Spend
+from OrderDetails od
+JOIN Orders ord
+ON ord.orderid =od.orderid
+JOIN Customers cus
+ON cus.customerid = ord.customerid
+GROUP BY ord.customerid
+ORDER BY Total_Spend DESC
+LIMIT 10
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Question 2
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+SELECT Company_Name,Favorite_Product,Quantity_Ordered
+FROM(
+SELECT Companyname Company_Name,productname Favorite_Product,MAX(quantity) Quantity_Ordered,SUM(((od.unitprice*quantity)-(discount *(od.unitprice*quantity))))  spend 
+FROM OrderDetails od
+JOIN Products prod
+ON od.productid = prod.productid
+JOIN orders Ord
+ON ord.orderid = od.orderid
+JOIN customers cus
+ON cus.customerid = ord.customerid
+GROUP BY 1
+ORDER BY spend DESC)t1
+LIMIT 10
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Question 3
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+SELECT cus.country,COUNT(DISTINCT cus.customerid) Number_of_Customers,SUM(((od.unitprice*od.quantity)-(od.discount *(od.unitprice*od.quantity)))) Total_Spend
+FROM Customers cus
+LEFT JOIN orders Ord
+ON ord.customerid = cus.customerid
+LEFT JOIN OrderDetails od
+ON od.orderid = ord.orderid
+GROUP BY cus.country
+ORDER BY Number_of_Customers DESC
+LIMIT 10
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Question 4 
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+SELECT p.ProductName Product_Name,  SUM(od.Quantity) AS Quantity_Ordered,  SUM(od.UnitPrice*od.Quantity*(1-od.Discount)) Total_Sales
+FROM Products p
+JOIN OrderDetails od
+ON p.ProductID= od.ProductID
+GROUP BY 1
+ORDER BY 2 DESC
+LIMIT 10
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Question 5
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+WITH Top10 AS (
+SELECT P.ProductID Product_ID,
+		p.ProductName,
+		s.SupplierID Supplier_ID,
+		SUM(od.UnitPrice*od.Quantity*(1-od.Discount)) Total_Sales,
+		SUM(od.Quantity) AS Quantity_Ordered
+	FROM Products p
+	JOIN OrderDetails od
+	ON p.ProductID= od.ProductID
+	JOIN Suppliers s
+	ON p.SupplierID = s.SupplierID
+	GROUP BY 1,2,3
+	ORDER BY 4 DESC
+	LIMIT 10)
+
+SELECT REPLACE(s.CompanyName,',','') Company_Name, SUM(t.Quantity_Ordered)
+	SUM(t.Total_Sales)AS total_Sales
+FROM Top10 t
+JOIN Suppliers s
+ON s.SupplierID = t.Supplier_ID
+GROUP BY 1
+ORDER BY 2 DESC
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Question 6
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+SELECT e.FirstName||' '||e.LastName AS Employee_Name,
+	e.Country AS emp_country,
+	SUM(od.UnitPrice*od.Quantity) AS total_sales,
+	c.CategoryName AS category_n
+FROM Employees e, Orders o,OrderDetails od, Products p, Categories c
+WHERE e.EmployeeID= o.EmployeeID
+	AND o.OrderId =od.OrderID
+	AND od.ProductID = p.ProductID
+	AND p.CategoryID = c.CategoryID
+GROUP BY 1
+ORDER BY 3 DESC
